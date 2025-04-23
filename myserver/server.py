@@ -28,7 +28,7 @@ class KnowledgeVault:
             rsrc = MarkdownResource(
                 uri=uri, #! It converts the whitespace to %20
                 name=os.path.basename(path).split('.')[0],
-                mime_type="text/plain",
+                mime_type="text/markdown",
                 size=os.path.getsize(path)
             )
             self.resource_map[uri] = rsrc

@@ -15,7 +15,7 @@ class MarkdownResource(Resource):
             raise ValueError(f"Only file resource permits. got uri({uri})")
         
         path = uri[len('file://'):]
-        file_path = os.path.join(VAULT_PATH, path)
+        file_path = os.path.join(VAULT_PATH, path).lower()
 
         if not os.path.exists(file_path):
             raise ValueError(f"file_path({file_path}) not exists")
