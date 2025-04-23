@@ -15,4 +15,4 @@ class Config:
         return self.data.get(name, None)
 
 config = Config.from_json('config.json')
-VAULT_PATH = config['VAULT_PATH']
+VAULT_PATH = config['VAULT_PATH'].lower()
