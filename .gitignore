@@ -1,3 +1,6 @@
 *.json
 .venv
 __pycache__
+models
+.DS_Store
+*.ipynb
