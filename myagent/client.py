@@ -10,6 +10,7 @@ from . import errors
 class MCPClient:
     def __init__(self):
         self.session = None
+        self.name = ''
         self.exit_stack = AsyncExitStack()
 
     async def connect_to_server(self, server_script_path:str):
@@ -27,7 +28,9 @@ class MCPClient:
         self.session = await self.exit_stack.enter_async_context(ClientSession(self.read, self.write))
 
         # connect server by sending initialize request
-        await self.session.initialize()
+        init_result = await self.session.initialize()
+        server_info = init_result.serverInfo
+        self.name = f"{server_info.name}(v{server_info.version})"
 
     async def list_tools(self) -> list[types.Tool]:
         response = await self.session.list_tools()
@@ -52,6 +55,7 @@ class MCPClientMaanger:
         self.clients:list[MCPClient] = []
 
         self.tool_map:dict[str, int] = dict()
+        self.tool_info:dict[str, dict[str, str]] = dict()
         self.resource_map:dict[str, int] = dict()
 
     def register_mcp(self, server_path:str):
@@ -72,6 +76,9 @@ class MCPClientMaanger:
         for c in self.clients:
             await c.cleanup()
 
+    def get_server_names(self):
+        return list(filter(lambda x:x, [c.name for c in self.clients]))
+    
     async def get_func_scheme(self) -> list[dict[str, str]]:
         func_scheme_list = []
 
@@ -81,6 +88,10 @@ class MCPClientMaanger:
             for tool in tools:
                 func_scheme_list.append(utils.tool2dict(tool))
                 self.tool_map[tool.name] = idx
+                
+                func_info = self.tool_info.get(self.clients[idx].name, {})
+                func_info[tool.name] = tool.description
+                self.tool_info[self.clients[idx].name] = func_info
 
         return func_scheme_list
 
