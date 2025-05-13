@@ -29,9 +29,9 @@ This repository also contains a simple LLM agent implementation. It currently us
 
 The agent can be used via a chat interface built with Streamlit. Please note that it is a prototype and may contain bugs.
 
-Below is a screenshot showing LLM loading and parameter settings:
-![image](./images/ui-main.png)
+below screenshots are showing LLM loading and parameter settings and the interactive chat view.
 
-Below is a screenshot of the interactive chat view:
-![image](./images/ui-chat.png)
+<img src="./images/ui-main.png" width="40%" /> <img src="./images/ui-chat.png" width="40.5%" />
+
+
 
