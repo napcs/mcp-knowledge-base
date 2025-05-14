@@ -73,5 +73,5 @@ class LlamaPrompt(BasePrompt):
         prompt = [self.system_prompt]
         prompt += self.history.get_chat_history(last=last)
         prompt += [self.get_assistant_prompt(answer='')] #* generation prompt
-        print(prompt)
+        
         return ''.join([p.template(tool_enabled=tool_enabled) for p in prompt])
