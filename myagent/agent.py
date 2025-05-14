@@ -10,25 +10,24 @@ import re
 import logging
 
 
+SYSTEM_PROMPT = """You are a helpful assistant"""
+
 #* Llama 3.2
-SYSTEM_PROMPT = """You are an expert in composing functions. You are given a question and a set of possible functions. 
+TOOL_CALL_PROMPT = """You are an expert in composing functions. You are given a question and a set of possible functions. 
 Based on the question, you will need to make one or more function/tool calls to achieve the purpose. 
 If none of the function can be used, point it out. If the given question lacks the parameters required by the function,
 also point it out. You should only return the function call in tools call sections.
 
-If you decide to invoke any of the function(s), you MUST put it in the format of [func_name1(params_name1=params_value1, params_name2=params_value2...), func_name2(params)]
+If you decide to invoke any of the function(s), you MUST put it in the format of [func_name1(), func_name2(params_name1=params_value1, params_name2=params_value2...), func_name3(params)]
 You SHOULD NOT include any other text in the response.
 
 Here is a list of functions in JSON format that you can invoke.
 
 {function_scheme}
-
-Here is a list of registered resources in the knowledge vault.
-
-{resource_list}
 """
+
 #* LLama 3.1
-# SYSTEM_PROMPT = """When you receive a tool call response, use the output to format an answer to the orginal user question.
+# TOOL_CALL_PROMPT = """When you receive a tool call response, use the output to format an answer to the orginal user question.
 
 # You are a helpful assistant with tool calling capabilities.
 # Given the following functions, please respond with a JSON for a function call with its proper arguments that best answers the given prompt.
@@ -43,9 +42,9 @@ Here is a list of registered resources in the knowledge vault.
 # # """
 
 logger = logging.getLogger('agent')
+logger.setLevel(logging.DEBUG)
 
 handler = logging.StreamHandler()
-handler.setLevel(logging.INFO)
 
 formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s')
 handler.setFormatter(formatter)
@@ -60,6 +59,9 @@ class Agent:
         self.prompt:BasePrompt = prompt
 
         self.mcp_manager = MCPClientMaanger()
+
+        self.func_scheme_prompt = ""
+        self.resource_prompt = ""
 
         self.tool_pattern = re.compile(r'\[([A-Za-z0-9\_]+\(([A-Za-z0-9\_]+=\"?.+\"?,?\s?)*\),?\s?)+\]')
         self.func_pattern = re.compile(r'(?P<function>[A-Za-z0-9\_]+)\((?P<params>[A-Za-z0-9\_]+=\"?.+\"?,?\s?)*\)')
@@ -80,11 +82,12 @@ class Agent:
 
         func_scheme_list = await self.mcp_manager.get_func_scheme()
         resource_list = await self.mcp_manager.get_resource_list()
+
+        self.func_scheme_prompt = json.dumps(func_scheme_list)
+        self.resource_prompt = json.dumps(resource_list)
         
-        self.prompt.set_system_prompt(SYSTEM_PROMPT.format(
-             function_scheme=json.dumps(func_scheme_list),
-             resource_list=json.dumps(resource_list)
-        ))
+        p = self.prompt.get_system_prompt(SYSTEM_PROMPT)
+        self.prompt.set_system_prompt(p)
 
     async def clean_agent(self):
         await self.mcp_manager.clean_mcp_client()
@@ -126,9 +129,16 @@ class Agent:
         response_list = []
 
         logger.debug(f"agent got question({question})")
-        self.prompt.append_user_prompt(question)
-        response = self.llm.generate(self.prompt.get_prompt(), **kwargs)
-        response = response.lstrip('()<>\{\}') #! remove noise (temporal)
+
+        tool_scheme = TOOL_CALL_PROMPT.format(
+            function_scheme=self.func_scheme_prompt
+            )
+        
+        p = self.prompt.get_user_prompt(question=question, tool_scheme=tool_scheme)
+        self.prompt.append_history(p)
+        
+        response = self.llm.generate(self.prompt.get_generation_prompt(tool_enabled=True), **kwargs)
+        response = response.strip().lstrip('()<>\{\}`') #! remove noise (temporal)
 
         logger.debug(f"llm generated response ({response})")
 
@@ -136,7 +146,8 @@ class Agent:
             logger.debug(f"agent tool required")
             response_list.append(AgentResponse(type="tool-calling", data=response))
 
-            self.prompt.append_assistant_prompt(response)
+            p = self.prompt.get_assistant_prompt(answer=response)
+            self.prompt.append_history(p)
 
             result = await self.get_result_tool(response)
             result = json.dumps(result, ensure_ascii=False)
@@ -145,12 +156,17 @@ class Agent:
 
             logger.debug(f"got result of each tool ({result})")
 
-            self.prompt.append_tool_result_prompt(result)
+            p = self.prompt.get_tool_result_prompt(result=result)
+            self.prompt.append_history(p)
 
-            response = self.llm.generate(self.prompt.get_prompt(), **kwargs)
+            response = self.llm.generate(self.prompt.get_generation_prompt(tool_enabled=False, last=3), **kwargs)
 
             logger.debug(f"llm generated final response({response})")
 
         response_list.append(AgentResponse(type="text", data=response))
+
+        p = self.prompt.get_assistant_prompt(answer=response)
+        self.prompt.append_history(p)
+
         return response_list
 
