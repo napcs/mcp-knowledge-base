@@ -4,11 +4,16 @@
 
 This repository is for building a private LLM agent that interfaces with an MCP client and server.
 
-The MCP server is designed to connect only to my private Obsidian knowledge base, which is organized using Markdown files. For more details, please refer to this [Medium Article (How I built a local MCP server to connect Obsidian with AI)](https://medium.com/gitconnected/how-i-built-a-local-mcp-server-to-connect-obsidian-with-ai-55121295a985).
+The MCP server is designed to connect only to my private Obsidian knowledge base, which is organized using Markdown files. 
+
+For more details, please refer to this [Medium Article (How I built a local MCP server to connect Obsidian with AI)](https://medium.com/gitconnected/how-i-built-a-local-mcp-server-to-connect-obsidian-with-ai-55121295a985).
+
+For the details of building sLLM agent and MCP client, please check this [Medium Article (How I built a Tool-calling Llama Agent with a Custom MCP Server)](https://medium.com/gitconnected/how-i-built-a-tool-calling-llama-agent-with-a-custom-mcp-server-3bc057d27e85).
 
 This repository includes the following components:
+  * MCP Client
+  * MCP Server
   * LLM Agent
-  * MCP Client / Server
 
 ## Components
 
