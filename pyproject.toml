@@ -1,7 +1,7 @@
 [project]
-name = "mcp-knowledge"
+name = "mcp-obsidian"
 version = "0.1.0"
-description = "Add your description here"
+description = "MCP server for local Obsidian vault"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

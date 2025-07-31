@@ -8,10 +8,10 @@ from .config import VAULT_PATH
 
 from mcp.server.fastmcp.server import logger
 
-class KnowledgeVaultServer:
+class ObsidianVaultServer:
     def __init__(self):
-        self.app = FastMCP("knowledge-vault")
-        
+        self.app = FastMCP("obsidian-vault")
+
         self.resource_map = {}
 
         self._init_resources()
@@ -36,25 +36,25 @@ class KnowledgeVaultServer:
             decoded_uri = uri2path(uri)
             self.resource_map[decoded_uri] = rsrc
             self.app.add_resource(rsrc)
-            
+
     def _init_tools(self):
-        
+
         @self.app.tool()
-        async def list_knowledges() -> list[dict[str, str]]:
-            '''List the names and URIs of all knowledges written in the the vault
+        async def list_docs() -> list[dict[str, str]]:
+            '''List the names and URIs of all docs written in the the vault
             '''
             return [{'name':rsrc.name, 'uri':rsrc.uri, 'size':rsrc.size} for rsrc in self.resource_map.values()]
-        
+
         @self.app.tool()
-        async def get_knowledge_by_uri(uri:str) -> str:
-            '''get contents of the knowledge resource by uri
+        async def get_doc_by_uri(uri:str) -> str:
+            '''get contents of the docs resource by uri
             '''
             # Use uri2path for consistent URI handling
             decoded_uri = uri2path(uri)
             rsrc = self.resource_map.get(decoded_uri, None)
             if not rsrc:
-                raise ValueError(f"Not registered resource URI")
-            
+                raise ValueError(f"Not a registered resource URI")
+
             return await rsrc.read()
 
     def run(self):

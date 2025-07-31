@@ -1,1 +1,1 @@
-from .server import KnowledgeVaultServer
+from .server import ObsidianVaultServer
