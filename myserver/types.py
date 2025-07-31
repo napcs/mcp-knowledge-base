@@ -11,16 +11,11 @@ class MarkdownResource(Resource):
     async def read(self) -> str | bytes:
         uri = uri2path(str(self.uri))
         
-        if not uri.startswith("file://"):
-            raise ValueError(f"Only file resource permits. got uri({uri})")
+        if not uri.startswith("file:///"):
+            raise ValueError(f"Only file:/// URI format supported. got uri({uri})")
         
-        # Handle both file:// and file:/// formats
-        if uri.startswith("file:///"):
-            path = uri[len('file:///'):]
-        else:
-            path = uri[len('file://'):]
-        
-        file_path = os.path.join(VAULT_PATH, path).lower()
+        path = uri[len('file:///'):]
+        file_path = os.path.join(VAULT_PATH, path)
 
         if not os.path.exists(file_path):
             raise ValueError(f"file_path({file_path}) not exists")
