@@ -1,7 +1,7 @@
-from myserver import KnowledgeVaultServer
+from myserver import ObsidianVaultServer
 
 if __name__ == '__main__':
-    app = KnowledgeVaultServer()
+    app = ObsidianVaultServer()
     app.run()
 
-    
+

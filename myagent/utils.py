@@ -37,4 +37,6 @@ def result2dict(result:types.TextContent):
     return result.text
 
 def uri2path(s):
-    return str(s).replace('%20', ' ').lower()
+    """Convert URI to path, properly handling URL encoding/decoding"""
+    from urllib.parse import unquote
+    return unquote(str(s))

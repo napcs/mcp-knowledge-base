@@ -138,7 +138,7 @@ class Agent:
         self.prompt.append_history(p)
         
         response = self.llm.generate(self.prompt.get_generation_prompt(tool_enabled=True), **kwargs)
-        response = response.strip().lstrip('()<>\{\}`') #! remove noise (temporal)
+        response = response.strip().lstrip('()<>\\{\\}`') #! remove noise (temporal)
 
         logger.debug(f"llm generated response ({response})")
 
