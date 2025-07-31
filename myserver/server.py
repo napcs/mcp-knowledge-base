@@ -1,6 +1,7 @@
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.exceptions import *
 import glob, os
+from urllib.parse import quote
 
 from .types import MarkdownResource
 from .utils import uri2path
@@ -23,7 +24,9 @@ class KnowledgeVaultServer:
         self.resource_map = {}
         for path in file_list:
             path = path.lower() #! XOS file system is case-insensitive
-            uri = f"file://{os.path.relpath(path, start=VAULT_PATH)}".lower()
+            relative_path = os.path.relpath(path, start=VAULT_PATH.lower())
+            # Ensure the URI starts with file:/// for proper file URI format
+            uri = f"file:///{quote(relative_path, safe='/')}".lower()
 
             rsrc = MarkdownResource(
                 uri=uri, #! It converts the whitespace to %20
@@ -47,8 +50,8 @@ class KnowledgeVaultServer:
             '''get contents of the knowledge resource by uri
             '''
             # logger.info(str(self.resource_map))
-            uri = uri2path(uri)
-            rsrc = self.resource_map.get(uri, None)
+            # Look up URI directly in resource_map (don't decode it)
+            rsrc = self.resource_map.get(uri.lower(), None)
             if not rsrc:
                 raise ValueError(f"Not registered resource URI")
             

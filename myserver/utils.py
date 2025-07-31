@@ -1,3 +1,5 @@
 
+from urllib.parse import unquote
+
 def uri2path(s):
-    return s.replace('%20', ' ').lower()
+    return unquote(s).lower()

@@ -14,7 +14,12 @@ class MarkdownResource(Resource):
         if not uri.startswith("file://"):
             raise ValueError(f"Only file resource permits. got uri({uri})")
         
-        path = uri[len('file://'):]
+        # Handle both file:// and file:/// formats
+        if uri.startswith("file:///"):
+            path = uri[len('file:///'):]
+        else:
+            path = uri[len('file://'):]
+        
         file_path = os.path.join(VAULT_PATH, path).lower()
 
         if not os.path.exists(file_path):
